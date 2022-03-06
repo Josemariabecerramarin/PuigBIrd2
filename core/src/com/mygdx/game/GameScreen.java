@@ -1,12 +1,14 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -22,9 +24,11 @@ public class GameScreen implements Screen {
     Texture pipeUpImage;
     Texture pipeDownImage;
     Array<Rectangle> obstacles;
-    long lastObstacleTime;
+    int lastObstacleTime;
     Texture pausa1;
     Rectangle pausa;
+    boolean pausar;
+    int spawn;
 
 
     float speedy;
@@ -38,6 +42,7 @@ public class GameScreen implements Screen {
 
     public GameScreen(final Bird gam) {
         this.game = gam;
+        pausar = false;
         // load the images
         backgroundImage = new Texture(Gdx.files.internal("background.png"));
         pausa1 = new Texture(Gdx.files.internal("pausa.png"));
@@ -62,6 +67,8 @@ public class GameScreen implements Screen {
         pausa.height = 60;
         pausa.width = 60;
 
+        spawn = 0;
+
         pipeUpImage = new Texture(Gdx.files.internal("pipe_up.png"));
         pipeDownImage = new Texture(Gdx.files.internal("pipe_down.png"));
 
@@ -71,7 +78,7 @@ public class GameScreen implements Screen {
         score = 0;
 
         // load the sound effects
-        flapSound = Gdx.audio.newSound(Gdx.files.internal("flap.wav"));
+        flapSound = Gdx.audio.newSound(Gdx.files.internal("clica.wav"));
         failSound = Gdx.audio.newSound(Gdx.files.internal("perder.wav"));
 
     }
@@ -93,12 +100,12 @@ public class GameScreen implements Screen {
         game.batch.draw(birdImage, player.x, player.y);
         // Dibuixa els obstacles: Els parells son tuberia inferior,
         //els imparells tuberia superior
-        for(int i = 0; i < obstacles.size; i++) {
+        for (int i = 0; i < obstacles.size; i++) {
             game.batch.draw(
                     i % 2 == 0 ? pipeUpImage : pipeDownImage,
                     obstacles.get(i).x, obstacles.get(i).y);
         }
-        game.font.draw(game.batch, "Score: " + (int)score, 10, 470);
+        game.font.draw(game.batch, "Score: " + (int) score, 10, 470);
         game.batch.draw(pausa1, pausa.x, pausa.y);
         game.batch.end();
         //Logica
@@ -106,53 +113,55 @@ public class GameScreen implements Screen {
         if (Gdx.input.justTouched()) {
             speedy = 400f;
             flapSound.play();
-        }
-        // Comprova que el jugador no es surt de la pantalla.
-        // Si surt per la part inferior, game over
-        if (player.y > 480 - 45){
-            player.y = 480 - 45;
-        }
-        if (player.y < 0 - 45) {
-            dead = true;
-        }
-
-        //Actualitza la posició del jugador amb la velocitat vertical
-        player.y += speedy * Gdx.graphics.getDeltaTime();
-        //Actualitza la velocitat vertical amb la gravetat
-        speedy -= gravity * Gdx.graphics.getDeltaTime();
-        //La puntuació augmenta amb el temps de joc
-        score += Gdx.graphics.getDeltaTime();
-
-        // Comprova que el jugador no es surt de la pantalla.
-        // Si surt per la part inferior, game over
-        if (player.y > 480 - 45){
-            player.y = 480 - 45;
-        }else if (player.y < 0 - 45){
-            dead = true;
-        }
-
-        // Comprova si cal generar un obstacle nou
-        if (TimeUtils.nanoTime() - lastObstacleTime > 1500000000)
-            spawnObstacle();
-        // Mou els obstacles. Elimina els que estan fora de la pantalla
-        // Comprova si el jugador colisiona amb un obstacle,
-        // llavors game over
-        Iterator<Rectangle> iter = obstacles.iterator();
-        while (iter.hasNext()) {
-            Rectangle tuberia = iter.next();
-            tuberia.x -= 200 * Gdx.graphics.getDeltaTime();
-            if (tuberia.x < -64)
-                iter.remove();
-            if (tuberia.overlaps(player)) {
-                dead = true;
+            if (Gdx.input.getY() < 80 && Gdx.input.getX() > 1825 ) {
+                if(pausar){
+                    pausar = false;
+                }else{
+                    pausar = true;
+                }
             }
         }
 
-        if(dead)
-        {
-            game.lastScore = (int)score;
+        if(!pausar){
+            spawn++;
+            //Actualitza la posició del jugador amb la velocitat vertical
+            player.y += speedy * Gdx.graphics.getDeltaTime();
+            //Actualitza la velocitat vertical amb la gravetat
+            speedy -= gravity * Gdx.graphics.getDeltaTime();
+            //La puntuació augmenta amb el temps de joc
+            score += Gdx.graphics.getDeltaTime();
+
+            // Comprova que el jugador no es surt de la pantalla.
+            // Si surt per la part inferior, game over
+            if (player.y > 480 - 45) {
+                player.y = 480 - 45;
+            } else if (player.y < 0 - 45) {
+                dead = true;
+            }
+
+            // Comprova si cal generar un obstacle nou
+            if (spawn - lastObstacleTime > 120)
+                spawnObstacle();
+            // Mou els obstacles. Elimina els que estan fora de la pantalla
+            // Comprova si el jugador colisiona amb un obstacle,
+            // llavors game over
+            Iterator<Rectangle> iter = obstacles.iterator();
+            while (iter.hasNext()) {
+                Rectangle tuberia = iter.next();
+                tuberia.x -= 200 * Gdx.graphics.getDeltaTime();
+                if (tuberia.x < -64)
+                    iter.remove();
+                if (tuberia.overlaps(player)) {
+                    dead = true;
+                }
+            }
+        }
+
+
+        if (dead) {
+            game.lastScore = (int) score;
             failSound.play();
-            if(game.lastScore > game.topScore)
+            if (game.lastScore > game.topScore)
                 game.topScore = game.lastScore;
             game.setScreen(new GameOverScreen(game));
             dispose();
@@ -186,6 +195,7 @@ public class GameScreen implements Screen {
 
         failSound.dispose();
         flapSound.dispose();
+        pausa1.dispose();
     }
 
     private void spawnObstacle() {
@@ -204,6 +214,6 @@ public class GameScreen implements Screen {
         pipe2.width = 64;
         pipe2.height = 230;
         obstacles.add(pipe2);
-        lastObstacleTime = TimeUtils.nanoTime();
+        lastObstacleTime = spawn;
     }
 }
