@@ -23,6 +23,9 @@ public class GameScreen implements Screen {
     Texture pipeDownImage;
     Array<Rectangle> obstacles;
     long lastObstacleTime;
+    Texture pausa1;
+    Rectangle pausa;
+
 
     float speedy;
     float gravity;
@@ -37,6 +40,7 @@ public class GameScreen implements Screen {
         this.game = gam;
         // load the images
         backgroundImage = new Texture(Gdx.files.internal("background.png"));
+        pausa1 = new Texture(Gdx.files.internal("pausa.png"));
         // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
@@ -52,6 +56,12 @@ public class GameScreen implements Screen {
         speedy = 0;
         gravity = 850f;
 
+        pausa = new Rectangle();
+        pausa.y = 430;
+        pausa.x = 725;
+        pausa.height = 60;
+        pausa.width = 60;
+
         pipeUpImage = new Texture(Gdx.files.internal("pipe_up.png"));
         pipeDownImage = new Texture(Gdx.files.internal("pipe_down.png"));
 
@@ -63,6 +73,7 @@ public class GameScreen implements Screen {
         // load the sound effects
         flapSound = Gdx.audio.newSound(Gdx.files.internal("flap.wav"));
         failSound = Gdx.audio.newSound(Gdx.files.internal("perder.wav"));
+
     }
 
     @Override
@@ -88,6 +99,7 @@ public class GameScreen implements Screen {
                     obstacles.get(i).x, obstacles.get(i).y);
         }
         game.font.draw(game.batch, "Score: " + (int)score, 10, 470);
+        game.batch.draw(pausa1, pausa.x, pausa.y);
         game.batch.end();
         //Logica
         // process user input

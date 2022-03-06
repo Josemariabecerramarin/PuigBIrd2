@@ -22,6 +22,7 @@ public class GameOverScreen implements Screen {
         game.font.draw(game.batch, "Game Over! ", 300, 300);
         game.font.draw(game.batch, "Final Score: " + game.lastScore, 300, 180);
         game.font.draw(game.batch, "Top Score: " + game.topScore, 300, 120);
+
         game.batch.end();
         if (Gdx.input.justTouched()) {
             game.setScreen(new MainMenuScreen(game));
