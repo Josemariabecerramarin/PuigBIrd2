@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
@@ -30,6 +31,7 @@ public class GameScreen implements Screen {
     boolean pausar;
     int spawn;
 
+    int espacio;
 
     float speedy;
     float gravity;
@@ -41,6 +43,7 @@ public class GameScreen implements Screen {
     Sound failSound;
 
     public GameScreen(final Bird gam) {
+
         this.game = gam;
         pausar = false;
         // load the images
@@ -57,7 +60,7 @@ public class GameScreen implements Screen {
         player.y = 480 / 2 - 64 / 2;
         player.width = 64;
         player.height = 45;
-
+        espacio = 120;
         speedy = 0;
         gravity = 850f;
 
@@ -113,16 +116,16 @@ public class GameScreen implements Screen {
         if (Gdx.input.justTouched()) {
             speedy = 400f;
             flapSound.play();
-            if (Gdx.input.getY() < 80 && Gdx.input.getX() > 1825 ) {
-                if(pausar){
+            if (Gdx.input.getY() < 80 && Gdx.input.getX() > 1825) {
+                if (pausar) {
                     pausar = false;
-                }else{
+                } else {
                     pausar = true;
                 }
             }
         }
 
-        if(!pausar){
+        if (!pausar) {
             spawn++;
             //Actualitza la posició del jugador amb la velocitat vertical
             player.y += speedy * Gdx.graphics.getDeltaTime();
@@ -140,8 +143,15 @@ public class GameScreen implements Screen {
             }
 
             // Comprova si cal generar un obstacle nou
-            if (spawn - lastObstacleTime > 120)
-                spawnObstacle();
+            if (score > 20) {
+                if (spawn - lastObstacleTime > 80) {
+                    spawnObstacle();
+                }
+            }else {
+                if (spawn - lastObstacleTime > 120) {
+                    spawnObstacle();
+                }
+            }
             // Mou els obstacles. Elimina els que estan fora de la pantalla
             // Comprova si el jugador colisiona amb un obstacle,
             // llavors game over
@@ -159,7 +169,7 @@ public class GameScreen implements Screen {
 
 
         if (dead) {
-            game.lastScore = (int) score;
+            Bird.scoreList.add(new GameOverScreen.Score((int) score));
             failSound.play();
             if (game.lastScore > game.topScore)
                 game.topScore = game.lastScore;
@@ -192,7 +202,6 @@ public class GameScreen implements Screen {
     public void dispose() {
         pipeUpImage.dispose();
         pipeDownImage.dispose();
-
         failSound.dispose();
         flapSound.dispose();
         pausa1.dispose();

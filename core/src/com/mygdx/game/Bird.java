@@ -7,11 +7,15 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Bird extends Game {
 	SpriteBatch batch;
 	BitmapFont font;
 	int topScore;
 	int lastScore;
+	static List<GameOverScreen.Score> scoreList = new ArrayList<>();
 
 
 	public void create() {
